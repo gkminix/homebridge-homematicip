@@ -25,6 +25,7 @@ interface MultiModeInputDimmerChannel {
  * HomematicIP multi channel dimmer
  *
  * HmIP-DRDI3 (Homematic IP Dimming Actuator – 3x channels)
+ * HmIP-RGBW  (Homematic IP LED Dimming Actuator - 2-4x channel depending on configuration)
  *
  */
 export class HmIPDimmerMultiChannel extends HmIPGenericDevice implements Updateable {
@@ -81,9 +82,12 @@ export class HmIPDimmerMultiChannel extends HmIPGenericDevice implements Updatea
        const channel = hmIPDevice.functionalChannels[id];
        //this.platform.log.info(`Dimmer update: ${JSON.stringify(channel)}`);
 
-       if (channel.functionalChannelType === 'MULTI_MODE_INPUT_DIMMER_CHANNEL') { 
+       if (channel.functionalChannelType === 'MULTI_MODE_INPUT_DIMMER_CHANNEL' ||
+           channel.functionalChannelType === 'UNIVERSAL_LIGHT_CHANNEL') {
         this.platform.log.debug(`Dimmer update: ${JSON.stringify(channel)}`);
         const dimmerChannel = <MultiModeInputDimmerChannel>channel;
+
+        if (!dimmerChannel.label) continue;
 
         if (!this.channels.has(dimmerChannel.index)){
 

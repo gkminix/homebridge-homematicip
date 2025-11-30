@@ -343,7 +343,8 @@ export class HmIPPlatform implements DynamicPlatformPlugin {
       || device.type === 'PLUGGABLE_DIMMER'
       || device.type === 'WIRED_DIMMER_3') { // Only first channel
       homebridgeDevice = new HmIPDimmer(this, hmIPAccessory.accessory);
-    } else if (device.type === 'DIN_RAIL_DIMMER_3') { // all channels
+    } else if (device.type === 'DIN_RAIL_DIMMER_3'
+      || device.type === 'RGBW_DIMMER') { // all channels
       homebridgeDevice = new HmIPDimmerMultiChannel(this, hmIPAccessory.accessory);  
     } else if (device.type === 'DOOR_LOCK_DRIVE') {
       homebridgeDevice = new HmIPDoorLockDrive(this, hmIPAccessory.accessory);
