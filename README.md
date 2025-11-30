@@ -110,6 +110,8 @@ See [Wiki](https://github.com/marcsowen/homebridge-homematicip/wiki) for details
 - HMIP-WRC6 Homematic IP button - 6 channels
 - HMIP-BRC2 Homematic IP brand button - 2 channels
 - HMIP-WRCC2 Homematic IP flat button - 2 channels
+- ELV-SH-CTH Smart temperature and humidity sensor
+- ELV-SH-SPS25 Switch power supply
 
 [1] Currently, only first channel is supported.<br>
 [2] Please make sure homebridge-homematicip is added to the list of access control clients in HmIP app settings.
@@ -125,7 +127,7 @@ See [Wiki](https://github.com/marcsowen/homebridge-homematicip/wiki) for details
 - @coreGreenberet for reverse-engineering and implementation of the first HomematicIP-API client using Python
   (https://github.com/coreGreenberet/homematicip-rest-api)
 - @dmalch for adding fakegato-history support (https://github.com/simont77/fakegato-history)
-- @smhex for HmIP-DLS, HmIP-BSL and HmIP-DRDI3 support
+- @smhex for HmIP-DLS, HmIP-BSL, HmIP-DRDI3, ELV-SH-CTH and ELV-SH-SPS25 support
 - @ohueter for thermostat/climate sensor config option
 - @aceg1k for improvements in thermostat heating/cooling state handling and API call handling
 - @gkminix for HmIP-FSI16 support
