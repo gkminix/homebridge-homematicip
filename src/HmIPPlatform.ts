@@ -285,7 +285,8 @@ export class HmIPPlatform implements DynamicPlatformPlugin {
       } else {
         homebridgeDevice = new HmIPWallMountedThermostat(this, hmIPAccessory.accessory);
       }
-    } else if (device.type === 'TEMPERATURE_HUMIDITY_SENSOR_OUTDOOR') {
+    } else if (device.type === 'TEMPERATURE_HUMIDITY_SENSOR_OUTDOOR'
+      || device.type === 'TEMPERATURE_HUMIDITY_SENSOR_COMPACT') {
       homebridgeDevice = new HmIPClimateSensor(this, hmIPAccessory.accessory);
     } else if (device.type === 'FULL_FLUSH_SHUTTER'
       || device.type === 'BRAND_SHUTTER') {
@@ -317,7 +318,8 @@ export class HmIPPlatform implements DynamicPlatformPlugin {
       || device.type === 'HEATING_SWITCH_2'
       || device.type === 'WIRED_SWITCH_8'
       || device.type === 'WIRED_SWITCH_4'
-      || device.type === 'DIN_RAIL_SWITCH_4') {
+      || device.type === 'DIN_RAIL_SWITCH_4'
+      || device.type === 'SWITCH_POWER_SUPPLY') { 
       homebridgeDevice = new HmIPSwitch(this, hmIPAccessory.accessory);
     } else if ( device.type === 'PLUGABLE_SWITCH_MEASURING'
       || device.type === 'BRAND_SWITCH_MEASURING'
