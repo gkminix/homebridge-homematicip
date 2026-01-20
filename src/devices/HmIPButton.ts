@@ -49,7 +49,7 @@ export class HmIPButton extends HmIPGenericDevice implements EventUpdateable {
         if (!this.channels.has(buttonChannel.index)) {
           const label = (buttonChannel.label == null || buttonChannel.label == '')
 				? `Button ${buttonChannel.index}`
-				: buttonChannel.label;
+				: `${buttonChannel.label} ${buttonChannel.index}`;
           buttonChannel.hapService = <Service>this.accessory.getServiceById(
 		  this.platform.Service.StatelessProgrammableSwitch, buttonChannel.index.toString());
           if (!buttonChannel.hapService) {
