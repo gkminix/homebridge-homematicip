@@ -78,7 +78,7 @@ export class HmIPDimmerMultiChannel extends HmIPGenericDevice implements Updatea
 
   public updateDevice(hmIPDevice: HmIPDevice, groups: { [key: string]: HmIPGroup }) {
     super.updateDevice(hmIPDevice, groups);
-    const needLabelIndex = (this.accessory.context.device.functionalChannels.size > 2);
+    const needLabelIndex = (this.accessory.context.device.functionalChannels.length > 2);
     for (const id in hmIPDevice.functionalChannels) {
        const channel = hmIPDevice.functionalChannels[id];
        //this.platform.log.info(`Dimmer update: ${JSON.stringify(channel)}`);

@@ -41,7 +41,7 @@ export class HmIPButton extends HmIPGenericDevice implements EventUpdateable {
 
     this.platform.log.debug(`Created button ${accessory.context.device.label}`);
 
-    const needLabelIndex = (accessory.context.device.functionalChannels.size > 2);
+    const needLabelIndex = (accessory.context.device.functionalChannels.length > 2);
     for (const id in accessory.context.device.functionalChannels) {
       const channel = accessory.context.device.functionalChannels[id];
       if (channel.functionalChannelType === 'SINGLE_KEY_CHANNEL') {
