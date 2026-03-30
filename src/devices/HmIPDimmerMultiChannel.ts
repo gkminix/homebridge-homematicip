@@ -36,7 +36,7 @@ export class HmIPDimmerMultiChannel extends HmIPGenericDevice implements Updatea
     platform: HmIPPlatform,
     accessory: PlatformAccessory,
   ) {
-   super(platform, accessory);
+    super(platform, accessory);
     this.platform.log.debug(`Created dimmer ${accessory.context.device.label}`);
 
     /* necessary services will be created during updateDevice() */
@@ -78,6 +78,7 @@ export class HmIPDimmerMultiChannel extends HmIPGenericDevice implements Updatea
 
   public updateDevice(hmIPDevice: HmIPDevice, groups: { [key: string]: HmIPGroup }) {
     super.updateDevice(hmIPDevice, groups);
+    const needLabelIndex = (this.accessory.context.device.functionalChannels.size > 2);
     for (const id in hmIPDevice.functionalChannels) {
        const channel = hmIPDevice.functionalChannels[id];
        //this.platform.log.info(`Dimmer update: ${JSON.stringify(channel)}`);
@@ -95,10 +96,15 @@ export class HmIPDimmerMultiChannel extends HmIPGenericDevice implements Updatea
           if (!dimmerChannel.hapService){
             const service = new this.platform.Service.Lightbulb(dimmerChannel.label, dimmerChannel.index.toString());
             service.addCharacteristic(this.platform.Characteristic.ConfiguredName);
+	    if (needLabelIndex) {
+              service.updateCharacteristic(this.platform.Characteristic.ServiceLabelIndex,
+						dimmerChannel.index);
+            }
             dimmerChannel.hapService = this.accessory.addService(service);
             
             /* The name is set only once when the accessory is added to Homebridge */
-            dimmerChannel.hapService.updateCharacteristic(this.platform.Characteristic.ConfiguredName, dimmerChannel.label);
+            dimmerChannel.hapService.updateCharacteristic(this.platform.Characteristic.ConfiguredName,
+							  dimmerChannel.label);
             
             this.platform.log.info('Dimmer %s adding channel %s: %s', this.accessory.displayName, dimmerChannel.index, dimmerChannel.index, dimmerChannel.label);
           }
