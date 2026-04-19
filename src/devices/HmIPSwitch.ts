@@ -37,6 +37,7 @@ interface SwitchChannel {
  * HMIPW-DRS8 (Homematic IP Wired Switch Actuator – 8x channels)
  * HMIPW-DRS4 (Homematic IP Wired Switch Actuator – 4x channels)
  * HMIP-DRSI4 (Homematic IP Switch Actuator for DIN rail mount – 4x channels)
+ * ELV-SH-SPS25 (ELV Battery powered switchable power supply)
  *
  */
 export class HmIPSwitch extends HmIPGenericDevice implements Updateable {
