@@ -157,6 +157,8 @@ export class HmIPSecuritySystem {
       if (group.type === 'SECURITY_ZONE') {
         const securityGroup = <SecurityZoneGroup>group;
 
+        this.platform.log.info('Security system state changed for zone %s', securityGroup.label);
+
         if (securityGroup.label === 'INTERNAL') {
 
           if (securityGroup.active !== this.internalZoneActive) {
@@ -166,6 +168,7 @@ export class HmIPSecuritySystem {
           }
           if (securityGroup.windowState !== null && securityGroup.windowState !== this.internalWindowState) {
             this.internalWindowState = securityGroup.windowState;
+            this.platform.log.info('Security system window state for internal zone changed to %s', this.internalWindowState);
 	    windowChanged = true;
           }
 
@@ -178,6 +181,7 @@ export class HmIPSecuritySystem {
           }
           if (securityGroup.windowState !== null && securityGroup.windowState !== this.externalWindowState) {
             this.externalWindowState = securityGroup.windowState;
+            this.platform.log.info('Security system window state for external zone changed to %s', this.externalWindowState);
 	    windowChanged = true;
           }
         }
@@ -191,7 +195,6 @@ export class HmIPSecuritySystem {
 
     if (windowChanged) {
       this.service.updateCharacteristic(this.platform.Characteristic.ContactSensorState,
-		this.internalWindowState === WindowState.CLOSED &&
 		this.externalWindowState === WindowState.CLOSED
 			? this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED
 			: this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
