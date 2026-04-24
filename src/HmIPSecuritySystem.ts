@@ -110,8 +110,7 @@ export class HmIPSecuritySystem {
   }
 
   handleContactSensorStateGet(callback: CharacteristicGetCallback) {
-    callback(null, this.internalWindowState === WindowState.CLOSED &&
-                   this.externalWindowState === WindowState.CLOSED
+    callback(null, this.externalWindowState === WindowState.CLOSED
 			? this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED
 			: this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
   }
