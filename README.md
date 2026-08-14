@@ -18,7 +18,7 @@ from Apple Home, included in scenes and automations, and used through Siri.
 ### Requirements
 
 - Homebridge 2.2.x
-- Node.js 22 or 24
+- Node.js 24 or 26
 
 Older Homebridge and Node.js releases are no longer supported by version 2.x of this plugin.
 Existing `access_point` and `auth_token` configuration remains compatible when upgrading from version 1.x.
@@ -242,6 +242,6 @@ dependency; users do not need to install or configure it separately.
 - @smhex for HmIP-DLS, HmIP-BSL, HmIP-DRDI3, ELV-SH-CTH and ELV-SH-SPS25 support
 - @ohueter for thermostat/climate sensor config option
 - @aceg1k for improvements in thermostat heating/cooling state handling and API call handling
-- @gkminix for HmIP-FSI16 support
+- @gkminix for HmIP-FSI16 support and Node-RED interoperability improvements
 
 ## Help needed!

@@ -13,6 +13,7 @@ const Characteristic = {
   On: 'On',
   Saturation: 'Saturation',
   SerialNumber: 'SerialNumber',
+  ServiceLabelIndex: 'ServiceLabelIndex',
   StatusLowBattery: {},
 };
 
@@ -53,6 +54,14 @@ class MockService {
 
   setCharacteristic() {
     return this;
+  }
+
+  addOptionalCharacteristic() {
+    return this;
+  }
+
+  testCharacteristic() {
+    return false;
   }
 
   updateCharacteristic(characteristic, value) {
@@ -173,6 +182,8 @@ test('exposes only configured HmIP-RGBW outputs with their declared capabilities
   assert.ok(!rgb.characteristics.has(Characteristic.ColorTemperature));
   assert.ok(tunableWhite.characteristics.has(Characteristic.ColorTemperature));
   assert.ok(!tunableWhite.characteristics.has(Characteristic.Hue));
+  assert.deepEqual(rgb.updates, [[Characteristic.ServiceLabelIndex, 1]]);
+  assert.deepEqual(tunableWhite.updates, [[Characteristic.ServiceLabelIndex, 2]]);
   assert.deepEqual(
     tunableWhite.getCharacteristic(Characteristic.ColorTemperature).props,
     {minValue: 154, maxValue: 500},
@@ -228,10 +239,14 @@ test('publishes HmIP-RGBW state changes to the matching HomeKit output', () => {
   }), {});
 
   assert.deepEqual(rgb.updates, [
+    [Characteristic.ServiceLabelIndex, 1],
     [Characteristic.On, false],
     [Characteristic.Brightness, 20],
     [Characteristic.Hue, 180],
     [Characteristic.Saturation, 70],
   ]);
-  assert.deepEqual(tunableWhite.updates, [[Characteristic.ColorTemperature, 200]]);
+  assert.deepEqual(tunableWhite.updates, [
+    [Characteristic.ServiceLabelIndex, 2],
+    [Characteristic.ColorTemperature, 200],
+  ]);
 });

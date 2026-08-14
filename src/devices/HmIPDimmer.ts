@@ -127,6 +127,9 @@ export class HmIPDimmer extends HmIPGenericDevice {
           new this.platform.Service.Lightbulb(sanitizeHomeKitName(label), channel.index.toString()),
         );
       }
+      if (dimmerChannels.length > 1) {
+        this.setServiceLabelIndex(hapService, channel.index);
+      }
 
       const runtimeChannel: DimmerRuntimeChannel = {
         dimLevel: channel.dimLevel ?? 0,

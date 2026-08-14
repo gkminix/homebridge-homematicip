@@ -85,6 +85,9 @@ export class HmIPSwitch extends HmIPGenericDevice {
         const service = new this.platform.Service.Switch(sanitizeHomeKitName(label), channel.index.toString());
         hapService = this.accessory.addService(service);
       }
+      if (switchChannels.length > 1) {
+        this.setServiceLabelIndex(hapService, channel.index);
+      }
       const runtimeChannel: SwitchRuntimeChannel = {
         ...channel,
         on: channel.on ?? false,

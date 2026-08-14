@@ -2,6 +2,7 @@ import type {CharacteristicValue, Service} from 'homebridge';
 import {
   type HmIPGroup,
   type HmIPHome,
+  isHmIPRecord,
   isHmIPSecurityAndAlarmSolution,
   isHmIPSecurityZoneGroup,
 } from 'homematicip-cloud-client-ts';
@@ -20,6 +21,20 @@ const REQUEST_BASED_SECURITY_ZONE_LABELS = {
 } as const;
 
 type SecurityZoneLabels = typeof CLASSIC_SECURITY_ZONE_LABELS | typeof REQUEST_BASED_SECURITY_ZONE_LABELS;
+
+type WindowState = 'CLOSED' | 'OPEN' | 'TILTED';
+
+function getWindowState(group: HmIPGroup): WindowState | undefined {
+  const candidate: unknown = group;
+  if (!isHmIPRecord(candidate)) {
+    return undefined;
+  }
+  return candidate.windowState === 'CLOSED'
+    || candidate.windowState === 'OPEN'
+    || candidate.windowState === 'TILTED'
+    ? candidate.windowState
+    : undefined;
+}
 
 class SecuritySystemTarget {
   public label: string;
@@ -46,6 +61,7 @@ export class HmIPSecuritySystem {
   private alarmActive = false;
   private internalZoneActive = false;
   private externalZoneActive = false;
+  private externalWindowState: WindowState = 'CLOSED';
   private securityZoneLabels: SecurityZoneLabels = CLASSIC_SECURITY_ZONE_LABELS;
 
   constructor(
@@ -74,6 +90,10 @@ export class HmIPSecuritySystem {
     this.service.getCharacteristic(this.platform.Characteristic.SecuritySystemTargetState)
       .onGet(() => this.getSecuritySystemTargetState())
       .onSet(value => this.handleTargetStateSet(value));
+
+    this.service.addOptionalCharacteristic(this.platform.Characteristic.ContactSensorState);
+    this.service.getCharacteristic(this.platform.Characteristic.ContactSensorState)
+      .onGet(() => this.getContactSensorState());
 
   }
 
@@ -140,6 +160,7 @@ export class HmIPSecuritySystem {
     }
 
     let stateChanged = false;
+    let windowStateChanged = false;
 
     for (const group of securityZoneGroups) {
       const active = group.active ?? false;
@@ -155,6 +176,15 @@ export class HmIPSecuritySystem {
           this.platform.log.info('Security system activation status for external zone changed to %s', this.externalZoneActive);
           stateChanged = true;
         }
+        const windowState = getWindowState(group);
+        if (windowState !== undefined && windowState !== this.externalWindowState) {
+          this.externalWindowState = windowState;
+          this.platform.log.info(
+            'Security system window state for external zone changed to %s',
+            this.externalWindowState,
+          );
+          windowStateChanged = true;
+        }
       }
     }
 
@@ -162,6 +192,18 @@ export class HmIPSecuritySystem {
       this.service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState, this.getSecuritySystemTargetState());
       this.service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState, this.getSecuritySystemCurrentState());
     }
+    if (windowStateChanged) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.ContactSensorState,
+        this.getContactSensorState(),
+      );
+    }
+  }
+
+  private getContactSensorState(): number {
+    return this.externalWindowState === 'CLOSED'
+      ? this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED
+      : this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
   }
 
   private getSecuritySystemCurrentState(): number {

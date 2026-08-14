@@ -122,6 +122,21 @@ export abstract class HmIPGenericDevice {
     return this.accessory.addService(new ServiceType(sanitizeHomeKitName(displayName), subtype));
   }
 
+  protected setServiceLabelIndex(service: Service, index: number): void {
+    if (!Number.isInteger(index) || index < 1 || index > 255) {
+      this.platform.log.warn(
+        'Cannot assign HomeKit service label index %s to %s',
+        index,
+        this.accessory.displayName,
+      );
+      return;
+    }
+    if (!service.testCharacteristic(this.platform.Characteristic.ServiceLabelIndex)) {
+      service.addOptionalCharacteristic(this.platform.Characteristic.ServiceLabelIndex);
+    }
+    service.updateCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index);
+  }
+
   protected rejectMissingFunctionalServices(expectedChannels: string): void {
     this.hasFunctionalServices = false;
     const device = this.accessory.context.device;

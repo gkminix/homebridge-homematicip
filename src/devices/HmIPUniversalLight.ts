@@ -122,6 +122,9 @@ export class HmIPUniversalLight extends HmIPGenericDevice {
         supportsHueSaturation: features?.IOptionalFeatureHueSaturationValue === true,
       };
 
+      if (lightChannels.length > 1) {
+        this.setServiceLabelIndex(runtimeChannel.hapService, channel.index);
+      }
       this.bindCharacteristics(runtimeChannel);
       this.channels.set(channel.index, runtimeChannel);
       this.platform.log.debug('Added universal light channel %d to %s', channel.index, this.accessory.displayName);

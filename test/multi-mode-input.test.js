@@ -50,6 +50,14 @@ class MockService {
     return this;
   }
 
+  addOptionalCharacteristic() {
+    return this;
+  }
+
+  testCharacteristic() {
+    return false;
+  }
+
   updateCharacteristic(characteristic, value) {
     this.updates.push([characteristic, value]);
     return this;
@@ -173,6 +181,9 @@ test('exposes independently configured HmIP-FCI6 channels', () => {
   assert.ok(contact4);
   assert.ok(!accessory.services.includes(staleContact));
   assert.ok(!accessory.services.includes(staleButton));
+  assert.deepEqual(contact1.updates[0], [Characteristic.ServiceLabelIndex, 1]);
+  assert.deepEqual(button2.updates[0], [Characteristic.ServiceLabelIndex, 2]);
+  assert.deepEqual(contact3.updates[0], [Characteristic.ServiceLabelIndex, 3]);
   assert.equal(contact1.getCharacteristic(Characteristic.ContactSensorState).getter(),
     Characteristic.ContactSensorState.CONTACT_DETECTED);
   assert.equal(contact3.getCharacteristic(Characteristic.ContactSensorState).getter(),
@@ -258,10 +269,13 @@ test('updates contact channels independently and reconciles mode changes', () =>
 
   adapter.updateDevice(updatedDevice, {});
 
-  assert.deepEqual(contact1.updates, [[
-    Characteristic.ContactSensorState,
-    Characteristic.ContactSensorState.CONTACT_NOT_DETECTED,
-  ]]);
+  assert.deepEqual(contact1.updates, [
+    [Characteristic.ServiceLabelIndex, 1],
+    [
+      Characteristic.ContactSensorState,
+      Characteristic.ContactSensorState.CONTACT_NOT_DETECTED,
+    ],
+  ]);
   assert.ok(!accessory.services.includes(contact3));
   assert.ok(accessory.getServiceById(StatelessProgrammableSwitchService, '3'));
 });

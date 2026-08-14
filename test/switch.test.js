@@ -10,6 +10,7 @@ const Characteristic = {
   Name: 'Name',
   On: 'On',
   SerialNumber: 'SerialNumber',
+  ServiceLabelIndex: 'ServiceLabelIndex',
   StatusLowBattery: {},
 };
 
@@ -20,6 +21,7 @@ class MockService {
     this.UUID = UUID;
     this.getters = new Map();
     this.setters = new Map();
+    this.updates = [];
   }
 
   getCharacteristic(characteristic) {
@@ -39,7 +41,16 @@ class MockService {
     return this;
   }
 
-  updateCharacteristic() {
+  addOptionalCharacteristic() {
+    return this;
+  }
+
+  testCharacteristic() {
+    return false;
+  }
+
+  updateCharacteristic(characteristic, value) {
+    this.updates.push([characteristic, value]);
     return this;
   }
 }
@@ -196,4 +207,6 @@ test('keeps every independently controllable actuator channel', () => {
   const switchServices = accessory.services.filter(service => service.UUID === MockSwitchService.UUID);
 
   assert.deepEqual(switchServices, [outputService, secondService]);
+  assert.deepEqual(outputService.updates, [[Characteristic.ServiceLabelIndex, 1]]);
+  assert.deepEqual(secondService.updates, [[Characteristic.ServiceLabelIndex, 2]]);
 });

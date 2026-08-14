@@ -1,3 +1,17 @@
+## 2.8.1 (2026-08-14)
+
+### Improvements
+
+- **Dependencies**: Updated Biome to 2.5.8, Homebridge to 2.3.1, and the Node.js type definitions to 26.2.0.
+- **Runtime support**: Added Node.js 26 support and removed Node.js 22 support. Node.js 24 LTS and Node.js 26 are now tested in CI.
+- **Security system**: Added the security zone's window state as an optional HomeKit contact-sensor characteristic for automations and Node-RED, ported from [#574](https://github.com/marcsowen/homebridge-homematicip/pull/574).
+- **Tooling**: Updated the pinned pnpm release from 11.20.0 to 11.21.0.
+
+### Bug fixes
+
+- **Multichannel devices**: Publish a HomeKit service-label index for switches, dimmers, universal-light outputs, contact inputs, and notification lights so every channel is distinguishable in Node-RED ([#618](https://github.com/marcsowen/homebridge-homematicip/issues/618), [#574](https://github.com/marcsowen/homebridge-homematicip/pull/574)).
+- **HmIP-BSL**: Preserve a usable lightness when changing hue or saturation so selecting a color after black no longer resolves back to black, ported from [#574](https://github.com/marcsowen/homebridge-homematicip/pull/574).
+
 ## 2.8.0 (2026-08-05)
 
 ### Breaking changes

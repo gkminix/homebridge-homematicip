@@ -153,6 +153,7 @@ export class HmIPMultiModeInput extends HmIPGenericDevice {
     runtimeChannel.windowState = channel.windowState;
     const label = channel.label?.trim() || `${deviceLabel} ${channel.index}`;
     const service = this.getOrAddService(this.platform.Service.ContactSensor, label, channel.index.toString());
+    this.setServiceLabelIndex(service, channel.index);
     service.getCharacteristic(this.platform.Characteristic.ContactSensorState)
       .onGet(() => this.getContactState(runtimeChannel));
     runtimeChannel.contactService = service;

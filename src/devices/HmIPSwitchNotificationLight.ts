@@ -131,6 +131,7 @@ export class HmIPSwitchNotificationLight extends HmIPGenericDevice {
           }
         }
         this.topLight = new NotificationLight('Button 1', notificationChannel, this.button1Led);
+        this.setServiceLabelIndex(this.button1Led, 1);
         if (this.topLight.hasOpticalSignal) {
           this.platform.log.debug(`Detected opticalSignal feature for ${notificationChannel.label}`);
         }
@@ -153,8 +154,9 @@ export class HmIPSwitchNotificationLight extends HmIPGenericDevice {
           } else {
             this.platform.log.error('Error adding service to %s for button 2 led', accessory.context.device.label);
           }
-        } 
+        }
         this.bottomLight = new NotificationLight('Button 2', notificationChannel, this.button2Led);
+        this.setServiceLabelIndex(this.button2Led, 2);
         if (this.bottomLight.hasOpticalSignal) {
           this.platform.log.debug(`Detected opticalSignal feature for ${notificationChannel.label}`);
         }
@@ -304,6 +306,9 @@ export class HmIPSwitchNotificationLight extends HmIPGenericDevice {
   private async buttonLedHueSet(light: NotificationLight, value: number): Promise<void> {
     if (light.hue !== value) {
       light.hue = value;
+      if (light.hue > 0 || light.saturation > 0) {
+        light.lightness = 50;
+      }
       await this.buttonLedColorSet(light);
     }
   }
@@ -321,6 +326,9 @@ export class HmIPSwitchNotificationLight extends HmIPGenericDevice {
   private async buttonLedSaturationSet(light: NotificationLight, value: number): Promise<void> {
     if (light.saturation !== value) {
       light.saturation = value;
+      if (light.hue > 0 || light.saturation > 0) {
+        light.lightness = 50;
+      }
       await this.buttonLedColorSet(light);
     }
   }

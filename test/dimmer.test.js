@@ -12,6 +12,7 @@ const Characteristic = {
   Model: 'Model',
   On: 'On',
   SerialNumber: 'SerialNumber',
+  ServiceLabelIndex: 'ServiceLabelIndex',
   StatusLowBattery: {},
 };
 
@@ -40,6 +41,14 @@ class MockService {
 
   setCharacteristic() {
     return this;
+  }
+
+  addOptionalCharacteristic() {
+    return this;
+  }
+
+  testCharacteristic() {
+    return false;
   }
 
   updateCharacteristic(characteristic, value) {
@@ -207,6 +216,11 @@ test('exposes all HmIPW-DRD3 output channels and uses their actual indexes', asy
   assert.equal(lightServices[0], legacyService);
   assert.equal(legacyService.displayName, 'Custom HomeKit name');
   assert.deepEqual(lightServices.map(service => service.subtype), [undefined, '2', '3']);
+  assert.deepEqual(lightServices.map(service => service.updates[0]), [
+    [Characteristic.ServiceLabelIndex, 1],
+    [Characteristic.ServiceLabelIndex, 2],
+    [Characteristic.ServiceLabelIndex, 3],
+  ]);
 
   await lightServices[0].setters.get(Characteristic.Brightness)(25);
   await lightServices[1].setters.get(Characteristic.Brightness)(50);
@@ -246,6 +260,7 @@ test('updates each dimmer channel independently', () => {
   }, {});
 
   assert.deepEqual(secondService.updates, [
+    [Characteristic.ServiceLabelIndex, 2],
     [Characteristic.On, true],
     [Characteristic.Brightness, 42],
   ]);

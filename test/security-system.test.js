@@ -4,6 +4,10 @@ import test from 'node:test';
 import {HmIPSecuritySystem} from '../dist/HmIPSecuritySystem.js';
 
 const Characteristic = {
+  ContactSensorState: {
+    CONTACT_DETECTED: 0,
+    CONTACT_NOT_DETECTED: 1,
+  },
   FirmwareRevision: 'FirmwareRevision',
   Manufacturer: 'Manufacturer',
   Model: 'Model',
@@ -37,6 +41,10 @@ function createSecuritySystem(config = {}) {
     },
   };
   const securityService = {
+    updates: [],
+    addOptionalCharacteristic() {
+      return this;
+    },
     getCharacteristic(characteristic) {
       return {
         onGet(handler) {
@@ -49,7 +57,10 @@ function createSecuritySystem(config = {}) {
         },
       };
     },
-    updateCharacteristic() {},
+    updateCharacteristic(characteristic, value) {
+      this.updates.push([characteristic, value]);
+      return this;
+    },
   };
   const accessory = {
     context: {
@@ -84,7 +95,9 @@ function createSecuritySystem(config = {}) {
 
   return {
     commands,
+    getContactState: () => getters.get(Characteristic.ContactSensorState)(),
     getTargetState: () => getters.get(Characteristic.SecuritySystemTargetState)(),
+    securityService,
     securitySystem: new HmIPSecuritySystem(platform, accessory),
     setTargetState: setters.get(Characteristic.SecuritySystemTargetState),
   };
@@ -98,13 +111,15 @@ test('supports the visible security-system toggle and per-device option', () => 
 });
 
 test('uses request-based security zone labels reported by the installation', async () => {
-  const {commands, getTargetState, securitySystem, setTargetState} = createSecuritySystem();
+  const {commands, getContactState, getTargetState, securityService, securitySystem, setTargetState}
+    = createSecuritySystem();
   securitySystem.updateGroups({
-    absence: {id: 'absence', label: 'ABSENCE', type: 'SECURITY_ZONE'},
-    presence: {active: true, id: 'presence', label: 'PRESENCE', type: 'SECURITY_ZONE'},
+    absence: {id: 'absence', label: 'ABSENCE', type: 'SECURITY_ZONE', windowState: 'OPEN'},
+    presence: {active: true, id: 'presence', label: 'PRESENCE', type: 'SECURITY_ZONE', windowState: 'CLOSED'},
   });
 
   assert.equal(getTargetState(), Characteristic.SecuritySystemTargetState.STAY_ARM);
+  assert.equal(getContactState(), Characteristic.ContactSensorState.CONTACT_DETECTED);
   await setTargetState(Characteristic.SecuritySystemTargetState.NIGHT_ARM);
 
   assert.deepEqual(commands, [[
@@ -112,6 +127,16 @@ test('uses request-based security zone labels reported by the installation', asy
     {zonesActivation: {ABSENCE: false, PRESENCE: true}},
     2,
   ]]);
+
+  securitySystem.updateGroups({
+    absence: {id: 'absence', label: 'ABSENCE', type: 'SECURITY_ZONE', windowState: 'CLOSED'},
+    presence: {active: true, id: 'presence', label: 'PRESENCE', type: 'SECURITY_ZONE', windowState: 'TILTED'},
+  });
+  assert.equal(getContactState(), Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+  assert.deepEqual(securityService.updates.at(-1), [
+    Characteristic.ContactSensorState,
+    Characteristic.ContactSensorState.CONTACT_NOT_DETECTED,
+  ]);
 });
 
 test('keeps using classic security zone labels when reported by the installation', async () => {
