@@ -1,3 +1,10 @@
+## 2.8.2 (2026-08-21)
+
+### Improvements
+
+- **Dependencies**: Updated Homebridge to 2.4.0, Biome to 2.5.9, and refreshed transitive dependencies to their latest stable releases.
+- **Tooling**: Updated the pinned pnpm release from 11.21.0 to 11.22.0 and removed obsolete dependency exceptions.
+
 ## 2.8.1 (2026-08-14)
 
 ### Improvements
