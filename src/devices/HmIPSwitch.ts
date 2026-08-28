@@ -28,9 +28,18 @@ interface SwitchRuntimeChannel {
   hapService: Service;
 }
 
+const multiModeInputSwitchDeviceTypes: ReadonlySet<string> = new Set([
+  'DIN_RAIL_SWITCH',
+  'FULL_FLUSH_INPUT_SWITCH',
+]);
+
+function usesMultiModeInputSwitchChannel(deviceType: string): boolean {
+  return multiModeInputSwitchDeviceTypes.has(deviceType);
+}
+
 function isSwitchChannel(channel: HmIPFunctionalChannel, deviceType: string): channel is SwitchChannel {
   const isActuatorChannel = hasFunctionalChannelType(channel, 'SWITCH_CHANNEL')
-    || (deviceType === 'FULL_FLUSH_INPUT_SWITCH'
+    || (usesMultiModeInputSwitchChannel(deviceType)
       && hasFunctionalChannelType(channel, 'MULTI_MODE_INPUT_SWITCH_CHANNEL'));
   if (!isActuatorChannel) {
     return false;
@@ -48,7 +57,9 @@ function isSwitchChannel(channel: HmIPFunctionalChannel, deviceType: string): ch
  * Switches
  *
  * HMIP-PS (Pluggable Switch)
+ * HMIP-FS6 (Full Flush Switch Compact - 6 channels)
  * HMIP-FSI16 (Full Flush Input Switch)
+ * HMIP-DRSI1 (Switch Actuator for DIN rail mount - 1 channel)
  * HMIP-BS2 (Brand Switch - 2x channels)
  * HMIP-PCBS (Switch Circuit Board - 1 channel)
  * HMIP-PCBS-BAT (Printed Circuit Board Switch Battery)
@@ -101,7 +112,7 @@ export class HmIPSwitch extends HmIPGenericDevice {
     }
 
     if (this.channels.size === 0) {
-      const expectedChannelType = device.type === 'FULL_FLUSH_INPUT_SWITCH'
+      const expectedChannelType = usesMultiModeInputSwitchChannel(device.type)
         ? 'MULTI_MODE_INPUT_SWITCH_CHANNEL'
         : 'SWITCH_CHANNEL';
       this.rejectMissingFunctionalServices(`${expectedChannelType} with numeric index and optional boolean/null on`);

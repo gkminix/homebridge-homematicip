@@ -266,6 +266,72 @@ test('updates each dimmer channel independently', () => {
   ]);
 });
 
+test('does not overwrite a scene brightness when brightness is set before on', async () => {
+  const {accessory, commands} = createDimmer('PLUGGABLE_DIMMER', {
+    1: dimmerChannel('DIMMER_CHANNEL', 1),
+  });
+  const lightService = accessory.services.find(service => service.UUID === MockLightbulbService.UUID);
+
+  await lightService.setters.get(Characteristic.Brightness)(50);
+  await lightService.setters.get(Characteristic.On)(true);
+
+  assert.deepEqual(commands, [[
+    'device/control/setDimLevel',
+    {channelIndex: 1, deviceId: 'dimmer1', dimLevel: 0.5},
+  ]]);
+});
+
+test('does not flash at another level when on is set before scene brightness', async () => {
+  const {accessory, commands} = createDimmer('PLUGGABLE_DIMMER', {
+    1: dimmerChannel('DIMMER_CHANNEL', 1),
+  });
+  const lightService = accessory.services.find(service => service.UUID === MockLightbulbService.UUID);
+
+  const onRequest = lightService.setters.get(Characteristic.On)(true);
+  await lightService.setters.get(Characteristic.Brightness)(50);
+  await onRequest;
+
+  assert.deepEqual(commands, [[
+    'device/control/setDimLevel',
+    {channelIndex: 1, deviceId: 'dimmer1', dimLevel: 0.5},
+  ]]);
+});
+
+test('an off request cancels a pending delayed on request', async () => {
+  const {accessory, commands} = createDimmer('PLUGGABLE_DIMMER', {
+    1: dimmerChannel('DIMMER_CHANNEL', 1),
+  });
+  const lightService = accessory.services.find(service => service.UUID === MockLightbulbService.UUID);
+
+  const onRequest = lightService.setters.get(Characteristic.On)(true);
+  await lightService.setters.get(Characteristic.On)(false);
+  await onRequest;
+
+  assert.deepEqual(commands, [[
+    'device/control/setDimLevel',
+    {channelIndex: 1, deviceId: 'dimmer1', dimLevel: 0},
+  ]]);
+});
+
+test('restores the last non-zero brightness when switched back on', async () => {
+  const {accessory, adapter, commands, device} = createDimmer('PLUGGABLE_DIMMER', {
+    1: dimmerChannel('DIMMER_CHANNEL', 1, 0.4),
+  });
+  const lightService = accessory.services.find(service => service.UUID === MockLightbulbService.UUID);
+
+  await lightService.setters.get(Characteristic.On)(false);
+  adapter.updateDevice({
+    ...device,
+    functionalChannels: {1: dimmerChannel('DIMMER_CHANNEL', 1, 0)},
+  }, {});
+  await lightService.setters.get(Characteristic.On)(true);
+
+  assert.deepEqual(commands, [
+    ['device/control/setDimLevel', {channelIndex: 1, deviceId: 'dimmer1', dimLevel: 0}],
+    ['device/control/setDimLevel', {channelIndex: 1, deviceId: 'dimmer1', dimLevel: 0.4}],
+  ]);
+});
+
 test('exposes HmIPW-DRD3 channels as stable independent accessories on demand', async () => {
   const device = dimmerDevice('WIRED_DIMMER_3', {
     1: dimmerChannel('DIMMER_CHANNEL', 1, 0.1),

@@ -27,6 +27,10 @@ interface DimmerRuntimeChannel {
   dimLevel: number;
   index: number;
   hapService: Service;
+  homeKitRequestVersion: number;
+  lastNonZeroDimLevel: number;
+  requestedDimLevel: number | undefined;
+  requestedDimLevelAt: number;
 }
 
 export interface HmIPDimmerChannelDescriptor {
@@ -82,6 +86,9 @@ function toBrightness(dimLevel: number): number {
   return Math.round(Math.min(1, Math.max(0, dimLevel)) * 100);
 }
 
+const REQUESTED_DIM_LEVEL_GRACE_MILLIS = 10_000;
+const HOMEKIT_ON_BRIGHTNESS_GRACE_MILLIS = 100;
+
 /**
  * Homematic IP dimmers
  *
@@ -135,6 +142,10 @@ export class HmIPDimmer extends HmIPGenericDevice {
         dimLevel: channel.dimLevel ?? 0,
         index: channel.index,
         hapService,
+        homeKitRequestVersion: 0,
+        lastNonZeroDimLevel: channel.dimLevel && channel.dimLevel > 0 ? channel.dimLevel : 1,
+        requestedDimLevel: undefined,
+        requestedDimLevelAt: 0,
       };
       hapService.getCharacteristic(this.platform.Characteristic.On)
         .onGet(() => runtimeChannel.dimLevel > 0)
@@ -172,8 +183,17 @@ export class HmIPDimmer extends HmIPGenericDevice {
   }
 
   private async handleOnSet(channel: DimmerRuntimeChannel, value: CharacteristicValue): Promise<void> {
-    if (value && channel.dimLevel === 0) {
-      await this.setBrightness(channel, 100);
+    const requestVersion = ++channel.homeKitRequestVersion;
+    if (value && channel.dimLevel === 0 && !this.hasRecentPositiveDimLevelRequest(channel)) {
+      // HomeKit scenes send On and Brightness as separate writes, and their order
+      // differs between clients. Give a following brightness write a brief chance
+      // to supersede this fallback so the light does not flash at another level.
+      await new Promise(resolve => setTimeout(resolve, HOMEKIT_ON_BRIGHTNESS_GRACE_MILLIS));
+      if (requestVersion === channel.homeKitRequestVersion
+        && channel.dimLevel === 0
+        && !this.hasRecentPositiveDimLevelRequest(channel)) {
+        await this.setBrightness(channel, toBrightness(channel.lastNonZeroDimLevel));
+      }
     } else if (!value) {
       await this.setBrightness(channel, 0);
     }
@@ -184,17 +204,49 @@ export class HmIPDimmer extends HmIPGenericDevice {
     if (!Number.isFinite(brightness)) {
       throw new Error(`Invalid HomeKit brightness value: ${String(value)}`);
     }
+    channel.homeKitRequestVersion++;
     await this.setBrightness(channel, Math.min(100, Math.max(0, brightness)));
   }
 
   private async setBrightness(channel: DimmerRuntimeChannel, brightness: number): Promise<void> {
     this.platform.log.info('Setting brightness of %s channel %d to %s %%', this.accessory.displayName,
       channel.index, brightness);
-    await this.platform.connector.command('device/control/setDimLevel', {
-      channelIndex: channel.index,
-      deviceId: this.accessory.context.device.id,
-      dimLevel: brightness / 100,
-    });
+    const requestedDimLevel = brightness / 100;
+    channel.requestedDimLevel = requestedDimLevel;
+    channel.requestedDimLevelAt = Date.now();
+    if (requestedDimLevel > 0) {
+      channel.lastNonZeroDimLevel = requestedDimLevel;
+    }
+    try {
+      await this.platform.connector.command('device/control/setDimLevel', {
+        channelIndex: channel.index,
+        deviceId: this.accessory.context.device.id,
+        dimLevel: requestedDimLevel,
+      });
+    } catch (error) {
+      if (channel.requestedDimLevel === requestedDimLevel) {
+        channel.requestedDimLevel = undefined;
+        channel.requestedDimLevelAt = 0;
+      }
+      throw error;
+    }
+  }
+
+  private hasRecentPositiveDimLevelRequest(channel: DimmerRuntimeChannel): boolean {
+    if (channel.requestedDimLevel === undefined
+      || Date.now() - channel.requestedDimLevelAt > REQUESTED_DIM_LEVEL_GRACE_MILLIS) {
+      channel.requestedDimLevel = undefined;
+      channel.requestedDimLevelAt = 0;
+      return false;
+    }
+    return channel.requestedDimLevel > 0;
+  }
+
+  public override dispose(): void {
+    for (const channel of this.channels.values()) {
+      channel.homeKitRequestVersion++;
+    }
+    super.dispose();
   }
 
   public override updateDevice(hmIPDevice: HmIPDevice, groups: Readonly<Record<string, HmIPGroup>>): void {
@@ -207,12 +259,23 @@ export class HmIPDimmer extends HmIPGenericDevice {
       }
 
       const currentChannel = this.channels.get(channel.index);
-      if (!currentChannel || currentChannel.dimLevel === channel.dimLevel) {
+      if (!currentChannel) {
+        continue;
+      }
+      if (currentChannel.requestedDimLevel !== undefined
+        && Math.abs(currentChannel.requestedDimLevel - channel.dimLevel) < 0.000_001) {
+        currentChannel.requestedDimLevel = undefined;
+        currentChannel.requestedDimLevelAt = 0;
+      }
+      if (currentChannel.dimLevel === channel.dimLevel) {
         continue;
       }
 
       const wasOn = currentChannel.dimLevel > 0;
       currentChannel.dimLevel = channel.dimLevel;
+      if (currentChannel.dimLevel > 0) {
+        currentChannel.lastNonZeroDimLevel = currentChannel.dimLevel;
+      }
       const isOn = currentChannel.dimLevel > 0;
       if (wasOn !== isOn) {
         currentChannel.hapService.updateCharacteristic(this.platform.Characteristic.On, isOn);

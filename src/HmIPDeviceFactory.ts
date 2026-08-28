@@ -13,6 +13,7 @@ import {HmIPLightSensor} from './devices/HmIPLightSensor.js';
 import {HmIPMotionDetector} from './devices/HmIPMotionDetector.js';
 import {HmIPMultiModeInput} from './devices/HmIPMultiModeInput.js';
 import {HmIPPresenceDetector} from './devices/HmIPPresenceDetector.js';
+import {HmIPRainSensor} from './devices/HmIPRainSensor.js';
 import {HmIPRotaryHandleSensor} from './devices/HmIPRotaryHandleSensor.js';
 import {HmIPShading} from './devices/HmIPShading.js';
 import {HmIPShutter} from './devices/HmIPShutter.js';
@@ -37,6 +38,7 @@ const deviceKinds = new Map<string, HmIPDeviceKind>([
   ['BRAND_SHUTTER', 'shutter'],
   ['FULL_FLUSH_BLIND', 'blind'],
   ['BRAND_BLIND', 'blind'],
+  ['DIN_RAIL_BLIND_4', 'blind'],
   ['BLIND_MODULE', 'shading'],
   ['SHUTTER_CONTACT', 'contactSensor'],
   ['SHUTTER_CONTACT_INTERFACE', 'contactSensor'],
@@ -54,6 +56,7 @@ const deviceKinds = new Map<string, HmIPDeviceKind>([
   ['PUSH_BUTTON_FLAT', 'button'],
   ['BRAND_PUSH_BUTTON', 'button'],
   ['DOOR_BELL_BUTTON', 'button'],
+  ['DOOR_BELL_CONTACT_INTERFACE', 'button'],
   ['KEY_REMOTE_CONTROL_4', 'button'],
   ['KEY_REMOTE_CONTROL_KEY_MATIC', 'button'],
   ['REMOTE_CONTROL_8', 'button'],
@@ -61,6 +64,7 @@ const deviceKinds = new Map<string, HmIPDeviceKind>([
   ['WIRED_PUSH_BUTTON_2', 'button'],
   ['WIRED_PUSH_BUTTON_6', 'button'],
   ['PLUGABLE_SWITCH', 'switch'],
+  ['FULL_FLUSH_SWITCH_COMPACT', 'switch'],
   ['FULL_FLUSH_INPUT_SWITCH', 'switch'],
   ['CARBON_DIOXIDE_SENSOR', 'switch'],
   ['MOTION_DETECTOR_SWITCH_OUTDOOR', 'switch'],
@@ -93,6 +97,7 @@ const deviceKinds = new Map<string, HmIPDeviceKind>([
   ['MOTION_DETECTOR_OUTDOOR', 'motionDetector'],
   ['MOTION_DETECTOR_PUSH_BUTTON', 'motionDetector'],
   ['PRESENCE_DETECTOR_INDOOR', 'presenceDetector'],
+  ['RAIN_SENSOR', 'rainSensor'],
   ['BRAND_DIMMER', 'dimmer'],
   ['FULL_FLUSH_DIMMER', 'dimmer'],
   ['PLUGGABLE_DIMMER', 'dimmer'],
@@ -140,6 +145,7 @@ export type HmIPDeviceKind =
   | 'motionDetector'
   | 'multiModeInput'
   | 'presenceDetector'
+  | 'rainSensor'
   | 'dimmer'
   | 'doorLockDrive'
   | 'doorLockSensor'
@@ -205,6 +211,7 @@ export class HmIPDeviceFactory {
       case 'motionDetector': return new HmIPMotionDetector(this.platform, accessory);
       case 'multiModeInput': return new HmIPMultiModeInput(this.platform, accessory);
       case 'presenceDetector': return new HmIPPresenceDetector(this.platform, accessory);
+      case 'rainSensor': return new HmIPRainSensor(this.platform, accessory);
       case 'dimmer': return new HmIPDimmer(this.platform, accessory);
       case 'doorLockDrive': return new HmIPDoorLockDrive(this.platform, accessory);
       case 'doorLockSensor': return new HmIPDoorLockSensor(this.platform, accessory);

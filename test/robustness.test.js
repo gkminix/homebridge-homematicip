@@ -193,9 +193,11 @@ test('maps Homematic IP device types to adapters', () => {
   assert.equal(getHmIPDeviceKind(device('FULL_FLUSH_CONTACT_INTERFACE_6')), 'multiModeInput');
   assert.equal(getHmIPDeviceKind(device('WIRED_INPUT_16')), 'multiModeInput');
   assert.equal(getHmIPDeviceKind(device('BLIND_MODULE')), 'shading');
+  assert.equal(getHmIPDeviceKind(device('DIN_RAIL_BLIND_4')), 'blind');
   for (const buttonType of [
     'PUSH_BUTTON_6_LED_SWITCH',
     'DOOR_BELL_BUTTON',
+    'DOOR_BELL_CONTACT_INTERFACE',
     'KEY_REMOTE_CONTROL_4',
     'KEY_REMOTE_CONTROL_KEY_MATIC',
     'REMOTE_CONTROL_8',
@@ -206,6 +208,7 @@ test('maps Homematic IP device types to adapters', () => {
     assert.equal(getHmIPDeviceKind(device(buttonType)), 'button');
   }
   assert.equal(getHmIPDeviceKind(device('DIN_RAIL_SWITCH')), 'switch');
+  assert.equal(getHmIPDeviceKind(device('FULL_FLUSH_SWITCH_COMPACT')), 'switch');
   assert.equal(getHmIPDeviceKind(device('STATUS_BOARD_8')), 'switch');
   assert.equal(getHmIPDeviceKind(device('MOTION_DETECTOR_SWITCH_OUTDOOR')), 'switch');
   assert.equal(getHmIPDeviceKind(device('USB_SWITCH_MEASURING')), 'switchMeasuring');

@@ -1,6 +1,7 @@
 import type {PlatformConfig} from 'homebridge';
 
 export interface HmIPDeviceConfig {
+  asContactSensor?: boolean;
   asClimateSensor?: boolean;
   hide?: boolean;
   lightSensor?: boolean;
