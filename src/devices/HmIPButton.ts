@@ -15,9 +15,10 @@ import type {HmIPPlatformAccessory} from '../HmIPTypes.js';
 import {HmIPGenericDevice} from './HmIPGenericDevice.js';
 
 interface ButtonChannel extends HmIPFunctionalChannel {
-  functionalChannelType: 'SINGLE_KEY_CHANNEL';
+  functionalChannelType: 'SINGLE_KEY_CHANNEL' | 'MULTI_MODE_INPUT_CHANNEL';
   index: number;
   label?: string | null;
+  channelRole?: string | null;
 }
 
 interface ButtonRuntimeChannel {
@@ -40,7 +41,11 @@ interface SwitchRuntimeChannel {
 }
 
 function isButtonChannel(channel: HmIPFunctionalChannel): channel is ButtonChannel {
-  if (!hasFunctionalChannelType(channel, 'SINGLE_KEY_CHANNEL')) {
+  const isSingleKeyChannel = hasFunctionalChannelType(channel, 'SINGLE_KEY_CHANNEL');
+  const isDoorBellInput = hasFunctionalChannelType(channel, 'MULTI_MODE_INPUT_CHANNEL')
+    && isHmIPRecord(channel)
+    && channel.channelRole === 'DOOR_BELL_INPUT';
+  if (!isSingleKeyChannel && !isDoorBellInput) {
     return false;
   }
   const candidate: unknown = channel;
@@ -61,7 +66,7 @@ function isSwitchChannel(channel: HmIPFunctionalChannel): channel is SwitchChann
 }
 
 /**
- * Homematic IP button and remote-control accessories.
+ * Homematic IP button, doorbell, and remote-control accessories.
  *
  * Combination devices such as HmIP-WRC6-230 may additionally expose an
  * actuator switch. Optical signalling channels are intentionally not exposed
@@ -83,7 +88,9 @@ export class HmIPButton extends HmIPGenericDevice {
     this.addSwitchChannels(device);
 
     if (this.buttonChannels.size === 0 && this.switchChannels.size === 0) {
-      this.rejectMissingFunctionalServices('SINGLE_KEY_CHANNEL or SWITCH_CHANNEL with numeric index');
+      this.rejectMissingFunctionalServices(
+        'SINGLE_KEY_CHANNEL, DOOR_BELL_INPUT, or SWITCH_CHANNEL with numeric index',
+      );
     } else if (this.buttonChannels.size === 0) {
       this.platform.log.debug('No button channels found for actuator device %s', this.accessory.displayName);
     } else {
@@ -108,7 +115,8 @@ export class HmIPButton extends HmIPGenericDevice {
       const subtype = channel.index.toString();
       let hapService = this.accessory.getServiceById(this.platform.Service.StatelessProgrammableSwitch, subtype);
       if (!hapService) {
-        const label = channel.label?.trim() || `${device.label} Button ${channel.index}`;
+        const label = channel.label?.trim()
+          || (channel.channelRole === 'DOOR_BELL_INPUT' ? device.label : `${device.label} Button ${channel.index}`);
         hapService = this.accessory.addService(
           new this.platform.Service.StatelessProgrammableSwitch(sanitizeHomeKitName(label), subtype),
         );
@@ -194,7 +202,8 @@ export class HmIPButton extends HmIPGenericDevice {
     }
 
     let homeKitEvent: number | null = null;
-    if (channelEventType === 'KEY_PRESS_SHORT' && channel.lastEvent !== 'KEY_PRESS_LONG_START') {
+    if (channelEventType === 'DOOR_BELL_SENSOR_EVENT'
+      || (channelEventType === 'KEY_PRESS_SHORT' && channel.lastEvent !== 'KEY_PRESS_LONG_START')) {
       homeKitEvent = this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS;
     } else if (channelEventType === 'KEY_PRESS_LONG_STOP') {
       homeKitEvent = this.platform.Characteristic.ProgrammableSwitchEvent.LONG_PRESS;

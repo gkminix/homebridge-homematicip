@@ -156,6 +156,65 @@ function createWrc6() {
   return {accessory, adapter, commands, customButton, device, staleButton};
 }
 
+function createDoorBellContactInterface() {
+  const informationService = new MockService('Information', undefined, Service.AccessoryInformation);
+  const device = {
+    id: 'doorbell-contact-interface',
+    type: 'DOOR_BELL_CONTACT_INTERFACE',
+    label: 'Front door bell',
+    oem: 'eq-3',
+    modelType: 'HmIP-DSD-PCB',
+    firmwareVersion: '1.0.0',
+    permanentlyReachable: true,
+    lastStatusUpdate: 0,
+    homeId: 'home1',
+    functionalChannels: {
+      0: {functionalChannelType: 'DEVICE_BASE'},
+      1: {
+        functionalChannelType: 'MULTI_MODE_INPUT_CHANNEL',
+        index: 1,
+        label: '',
+        channelRole: 'DOOR_BELL_INPUT',
+      },
+    },
+  };
+  const accessory = {
+    context: {device},
+    displayName: device.label,
+    services: [informationService],
+    UUID: 'uuid-doorbell',
+    addService(service) {
+      this.services.push(service);
+      return service;
+    },
+    getService(service) {
+      return this.services.find(candidate => candidate.UUID === service || candidate.UUID === service.UUID);
+    },
+    getServiceById(service, subtype) {
+      return this.services.find(candidate => candidate.UUID === service.UUID && candidate.subtype === subtype);
+    },
+    removeService(service) {
+      this.services.splice(this.services.indexOf(service), 1);
+    },
+  };
+  const platform = {
+    api: {updatePlatformAccessories() {}},
+    Characteristic,
+    config: {},
+    connector: {async command() {}},
+    groups: {},
+    log: {
+      debug() {},
+      info() {},
+      warn() {},
+    },
+    Service,
+  };
+
+  const adapter = new HmIPButton(platform, accessory);
+  return {accessory, adapter};
+}
+
 test('HmIP-WRC6-230 exposes six buttons and its actuator output', async () => {
   const {accessory, commands, customButton, staleButton} = createWrc6();
   const buttons = accessory.services.filter(service => service.UUID === MockButtonService.UUID);
@@ -187,6 +246,20 @@ test('button channel events preserve single- and long-press behavior', () => {
     Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
     Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
   ]);
+});
+
+test('HmIP-DSD-PCB exposes doorbell events as a single press', () => {
+  const {accessory, adapter} = createDoorBellContactInterface();
+  const buttons = accessory.services.filter(service => service.UUID === MockButtonService.UUID);
+
+  assert.equal(buttons.length, 1);
+  assert.equal(buttons[0].displayName, 'Front door bell');
+  assert.equal(buttons[0].subtype, '1');
+
+  const eventCharacteristic = buttons[0].getCharacteristic(Characteristic.ProgrammableSwitchEvent);
+  adapter.channelEvent(1, 'DOOR_BELL_SENSOR_EVENT');
+
+  assert.deepEqual(eventCharacteristic.events, [Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS]);
 });
 
 test('button actuator state updates independently', () => {

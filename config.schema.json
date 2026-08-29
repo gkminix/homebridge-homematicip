@@ -56,6 +56,12 @@
               "type": "boolean",
               "default": false
             },
+            "asContactSensor": {
+              "title": "Expose as Contact Sensor",
+              "description": "HmIP-SRH rotary handle sensor only. Expose a read-only contact sensor where closed means contact detected and tilted or open means contact not detected.",
+              "type": "boolean",
+              "default": false
+            },
             "asClimateSensor": {
               "title": "Expose as Climate Sensor",
               "description": "Wall thermostats only (for example HmIP-WTH, HmIP-WTH-2, HmIP-WTH-B, HmIP-BWTH, HmIP-STH and HmIP-STHD). Hide the temperature controls and expose only the climate sensor functions.",

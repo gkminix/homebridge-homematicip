@@ -28,11 +28,20 @@ test('renders an initially empty per-device array as an addable tab list', () =>
 test('gets a device config from the supported array format', () => {
   const config = getDeviceConfig([
     {id: 'device1', hide: true},
-    {id: 'device2', lightSensor: true},
+    {id: 'device2', asContactSensor: true, lightSensor: true},
   ], 'device2');
 
+  assert.equal(config?.asContactSensor, true);
   assert.equal(config?.lightSensor, true);
   assert.equal('id' in config, false);
+});
+
+test('offers the rotary handle contact sensor option', () => {
+  const option = configSchema.schema.properties.devices.items.properties.asContactSensor;
+
+  assert.equal(option.type, 'boolean');
+  assert.equal(option.default, false);
+  assert.match(option.description, /HmIP-SRH/);
 });
 
 test('detects legacy object-based per-device configuration', () => {

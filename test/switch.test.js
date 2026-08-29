@@ -70,6 +70,7 @@ const Service = {
 };
 
 function createSwitch({
+  additionalOutputs = 0,
   deviceType = 'PLUGABLE_SWITCH',
   includeInput = true,
   multiOutput = false,
@@ -82,12 +83,20 @@ function createSwitch({
   const informationService = new MockService('Information', undefined, Service.AccessoryInformation);
   const outputService = new MockSwitchService('Plug', '1');
   const secondService = new MockSwitchService(multiOutput ? 'Output 2' : 'Input', '2');
+  const additionalOutputServices = Array.from({length: additionalOutputs}, (_, offset) => {
+    const index = offset + 3;
+    return new MockSwitchService(`Output ${index}`, index.toString());
+  });
   const device = {
     id: 'switch1',
     type: deviceType,
     label: 'Plug',
     oem: 'eq-3',
-    modelType: deviceType === 'FULL_FLUSH_INPUT_SWITCH' ? 'HmIP-FSI16' : 'HmIP-PS-2 9YM',
+    modelType: {
+      DIN_RAIL_SWITCH: 'HmIP-DRSI1',
+      FULL_FLUSH_INPUT_SWITCH: 'HmIP-FSI16',
+      FULL_FLUSH_SWITCH_COMPACT: 'HmIP-FS6',
+    }[deviceType] ?? 'HmIP-PS-2 9YM',
     firmwareVersion: '1.0.0',
     permanentlyReachable: true,
     lastStatusUpdate: 0,
@@ -113,12 +122,18 @@ function createSwitch({
         label: multiOutput ? 'Output 2' : '',
         on: false,
       }} : {}),
+      ...Object.fromEntries(additionalOutputServices.map(service => [service.subtype, {
+        functionalChannelType: 'SWITCH_CHANNEL',
+        index: Number(service.subtype),
+        label: service.displayName,
+        on: false,
+      }])),
     },
   };
   const accessory = {
     context: {device},
     displayName: 'Plug',
-    services: [informationService, outputService, secondService],
+    services: [informationService, outputService, secondService, ...additionalOutputServices],
     UUID: 'uuid1',
     addService(service) {
       this.services.push(service);
@@ -202,6 +217,24 @@ test('exposes the HmIP-FSI16 multi-mode channel as its actuator output', async (
   ]]);
 });
 
+test('exposes the HmIP-DRSI1 multi-mode channel as its actuator output', async () => {
+  const {accessory, adapter, commands, outputService} = createSwitch({
+    deviceType: 'DIN_RAIL_SWITCH',
+    includeInput: false,
+    outputChannelType: 'MULTI_MODE_INPUT_SWITCH_CHANNEL',
+  });
+  const switchServices = accessory.services.filter(service => service.UUID === MockSwitchService.UUID);
+
+  assert.equal(adapter.hasFunctionalServices, true);
+  assert.deepEqual(switchServices, [outputService]);
+  assert.equal(outputService.getters.get(Characteristic.On)(), false);
+  await outputService.setters.get(Characteristic.On)(true);
+  assert.deepEqual(commands, [[
+    'device/control/setSwitchState',
+    {channelIndex: 1, deviceId: 'switch1', on: true},
+  ]]);
+});
+
 test('keeps every independently controllable actuator channel', () => {
   const {accessory, outputService, secondService} = createSwitch({multiOutput: true});
   const switchServices = accessory.services.filter(service => service.UUID === MockSwitchService.UUID);
@@ -209,4 +242,25 @@ test('keeps every independently controllable actuator channel', () => {
   assert.deepEqual(switchServices, [outputService, secondService]);
   assert.deepEqual(outputService.updates, [[Characteristic.ServiceLabelIndex, 1]]);
   assert.deepEqual(secondService.updates, [[Characteristic.ServiceLabelIndex, 2]]);
+});
+
+test('exposes HmIP-FS6 as a multichannel switch', async () => {
+  const {accessory, adapter, commands} = createSwitch({
+    additionalOutputs: 4,
+    deviceType: 'FULL_FLUSH_SWITCH_COMPACT',
+    multiOutput: true,
+  });
+  const switchServices = accessory.services.filter(service => service.UUID === MockSwitchService.UUID);
+
+  assert.equal(adapter.hasFunctionalServices, true);
+  assert.deepEqual(switchServices.map(service => service.subtype), ['1', '2', '3', '4', '5', '6']);
+  assert.deepEqual(
+    switchServices.map(service => service.updates),
+    [1, 2, 3, 4, 5, 6].map(index => [[Characteristic.ServiceLabelIndex, index]]),
+  );
+  await switchServices[5].setters.get(Characteristic.On)(true);
+  assert.deepEqual(commands, [[
+    'device/control/setSwitchState',
+    {channelIndex: 6, deviceId: 'switch1', on: true},
+  ]]);
 });

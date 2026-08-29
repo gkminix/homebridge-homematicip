@@ -134,6 +134,7 @@ implement and test a device adapter. Review the file before attaching it to a pu
 - HmIP-BROLL Shutter actuator - brand-mount
 - HmIP-FBL Blind actuator - flush-mount
 - HmIP-BBL Blind actuator - brand-mount
+- HmIP-DRBLI4 DIN rail blind actuator – 4x channels
 - HmIP-HDM1 Hunter Douglas and erfal window covering module
 - HmIP-WTH Wall thermostat
 - HmIP-WTH-2 Wall thermostat with humidity sensor
@@ -184,6 +185,7 @@ implement and test a device adapter. Review the file before attaching it to a pu
 - HmIP-SMO-A Motion detector with brightness sensor - outdoor
 - HmIP-SMI55 Motion detector with brightness sensor and remote control - 2-button
 - HmIP-SPI Presence sensor - indoor
+- HmIP-SRD Rain sensor
 - HmIP-PDT Pluggable dimmer
 - HmIP-BDT Brand dimmer
 - HmIP-FDT Dimming actuator flush-mount
@@ -205,6 +207,7 @@ implement and test a device adapter. Review the file before attaching it to a pu
 - HmIP-KRC4 / HmIP-KRC-K Homematic IP key-ring remote controls - 4 channels
 - HmIP-RC8 / HmIP-MOD-RC8 Homematic IP remote controls - 8 channels
 - HmIP-DBB Homematic IP doorbell button
+- HmIP-DSD-PCB Homematic IP doorbell signal detector
 - ELV-SH-CTH Smart temperature and humidity sensor
 - ELV-SH-SPS25 Switch power supply
 

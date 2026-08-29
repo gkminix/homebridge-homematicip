@@ -1,3 +1,21 @@
+## 2.9.0 (2026-08-28)
+
+### Improvements
+
+- **HmIP-FS6**: Added support for the six-channel compact flush-mount switch actuator (`FULL_FLUSH_SWITCH_COMPACT`) ([#622](https://github.com/marcsowen/homebridge-homematicip/issues/622)).
+- **HmIP-DRBLI4**: Added support for all four channels of the DIN rail blind actuator (`DIN_RAIL_BLIND_4`) ([#405](https://github.com/marcsowen/homebridge-homematicip/issues/405)).
+- **HmIP-SRD**: Added rain detection as an occupancy-style HomeKit sensor, matching the optional rain service used by weather sensors ([#369](https://github.com/marcsowen/homebridge-homematicip/issues/369)).
+- **HmIP-SRH**: Added an optional contact sensor mode for simpler Siri open and closed queries while keeping the three-state window representation as the default ([#164](https://github.com/marcsowen/homebridge-homematicip/issues/164)).
+- **HmIP-DSD-PCB**: Added its doorbell input as a HomeKit button event for scenes and automations ([#423](https://github.com/marcsowen/homebridge-homematicip/issues/423)).
+- **Dependencies**: Updated Biome to 2.5.11 and the Node.js type definitions to 26.4.0, and refreshed transitive dependencies.
+- **Tooling**: Updated the pinned pnpm release from 11.22.0 to 11.24.0.
+
+### Bug fixes
+
+- **HmIP-FBL/HmIP-BBL**: Prevent HomeKit scenes from restoring an outdated blind height when setting the slat angle, and hide slat controls when the actuator is configured in roller mode ([#279](https://github.com/marcsowen/homebridge-homematicip/issues/279)).
+- **Dimmers**: Prevent HomeKit scenes from flashing at or getting overwritten by 100%, regardless of whether HomeKit sends the on or brightness request first, and restore the last non-zero brightness when switching a dimmer back on ([#366](https://github.com/marcsowen/homebridge-homematicip/issues/366), [#404](https://github.com/marcsowen/homebridge-homematicip/issues/404)).
+- **HmIP-DRSI1**: Recognize its multi-mode actuator channel and expose it as a controllable HomeKit switch ([#473](https://github.com/marcsowen/homebridge-homematicip/issues/473)).
+
 ## 2.8.2 (2026-08-21)
 
 ### Improvements
